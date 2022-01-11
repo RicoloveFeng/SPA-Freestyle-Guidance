@@ -52,13 +52,13 @@
 
 * array 的处理是和 `x.f = y` 并列的；
 
-  ![image-20211112135335878](img/Assignment 5/image-20211112135335878.png)
+  <img src="img/Assignment 5/image-20211112135335878.png" alt="image-20211112135335878"  />
 
 * 静态域放在 `AddReachable` 上，和 `x = y` 并列……或者本来你就可以把它当做一种特殊的 `x = y`；
 
 * 静态调用也在 `AddReachable` 上。
 
-  ![image-20211112135420868](img/Assignment 5/image-20211112135420868.png)
+  <img src="img/Assignment 5/image-20211112135420868.png" alt="image-20211112135420868"  />
 
 当然，手册也已经给了相应的 hint 了，请 Ctrl + F 搜索 `handle` 一词来查找哪些新规则要引入到哪里。
 
@@ -90,9 +90,9 @@
 
   我们首先需要获取 `f` 这个域是什么，这个问题可以看手册 2.4 addReachable 2) 来解决。然后，我们该怎么把 `o_i` 和 `f` 拼起来得到 `o_i.f` 呢？相应的 API 在 `pointerFlowGraph` 里面，请记住 `o_i.f` 这种东西叫做：
 
-  ![image-20211112220846683](img/Assignment 5/image-20211112220846683.png)
+  <img src="img/Assignment 5/image-20211112220846683.png" alt="image-20211112220846683" style="zoom:150%;" />
 
-* 为了不混淆 `addPFGEdge` 的 source 和 target，你可以令自己把 o_f, y 这些变量显式地写出来，然后再简洁地写上 `addPFGEdge(y, o.f)`，这虽然没有全写到一行干净利落，但是便于你 debug。
+* 为了不混淆 `addPFGEdge` 的 source 和 target，你可以令自己把 o_f, y 这些变量显式地写出来，然后再简洁地写上 `addPFGEdge(y, o_f)`，这虽然没有全写到一行干净利落，但是便于你 debug。
 * 不要忘了处理 array.
 * 由于 pointer 有 4 种类型，你可能会想要不要 `if n represents an instanceField o_f then` 这样子，给算法加加码。强调一下，不用！
 
@@ -102,7 +102,7 @@
 
 ### `propagate`
 
-![image-20211112221737810](img/Assignment 5/image-20211112221737810.png)
+<img src="img/Assignment 5/image-20211112221737810.png" alt="image-20211112221737810" style="zoom: 80%;" />
 
 * 关于 `delta` 的计算，你可以遍历 `pts`，跳过其中 `pt(n)` 有的元素，逐个构成 `delta`。不过，考虑到 `PointToSet.objects()` 返回的是一个 `stream`，你也可以用 `stream` 的方法来生成一个 `delta`。酷炫就完事了。（我试了，能行，但是我没用这个代码，所以把它贴出来，哈哈哈）
 
@@ -112,7 +112,7 @@
 
 ### `processCall`
 
-<img src="img/Assignment 5/image-20211112222247197.png" alt="image-20211112222247197" style="zoom:67%;" />
+<img src="img/Assignment 5/image-20211112222247197.png" alt="image-20211112222247197" style="zoom: 80%;" />
 
 * 首先，static call 也是同样的处理逻辑，但是不需要 dispatch o_i，也不需要把 o_i 加到 m_this 里面（静态的哪来 object），但是 `processCall` 在语义上要求处理 instance call，所以还是不要把它改成能处理 static call 的样子，并把 `foreach l: r = x.k(...) in S do` 分拆到函数外。推荐把后面相同的处理逻辑提取一个新的函数出来，然后在 `processCall` 和 `addReachable` 都去调用。
 * `Solver.resolveCallee()` 能处理所有种类的 invoke，所以不需要专门为 virtual call 从 hierarchy 里面拿 dispatch 函数出来了。事实上，如果你去看它的内部实现，在遇到 virtual call 时确实也去调了 `dispatch`。有更加全能，更兼容的 API，当然要用啦！
@@ -121,7 +121,7 @@
 
 ### `addReachable` / `StmtProcessor`
 
-![image-20211112223932920](img/Assignment 5/image-20211112223932920.png)
+<img src="img/Assignment 5/image-20211112223932920.png" alt="image-20211112223932920" style="zoom:80%;" />
 
 * 前面已经提到过 `S` 在代码实现中的修改，这里不再赘述。总之，你在 `addReachable` 里面要做的事情就是遍历新 reach 到的方法的每一个 stmt，并根据其是否属于 New, Copy 等，分别作出处理。这个遍历的方法既可以是一个个 `instanceof`，也可以用 `stmt.accept(stmtProcessor)` 来充分利用框架提供的 visitor 模式。
 * 你可能注意到了，`int a = 1`, `String b = "word"` 这样的语句在本次实验中并不会出现，所以不需要针对它们做支持。

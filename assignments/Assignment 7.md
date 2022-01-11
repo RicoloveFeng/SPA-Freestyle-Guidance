@@ -7,6 +7,8 @@
 >正在播放 過火 - 張信哲
 >
 >▶ ︎ı||ııı||ı|ıı||ı| 9”
+>
+>​								——譚添，評論于第七次實驗分發之後。
 
 
 
@@ -43,7 +45,7 @@
 讓我們回想一下，做過程間的常量傳播時，我們都幹了什麼：
 
 * 每個節點存儲某個變量是什麼類型的常量
-* 對於一個賦值語句，我們直接修改被賦值語句在 out fact 的常量值
+* 對於一個賦值語句，我們直接修改被賦值變量在 out fact 的常量值
 * 對於一個計算語句，我們提取操作變量及它們在 fact 中的常量值，進行計算後，修改被賦值變量在 out fact 中的常量值。
 * 當我們要更新 in fact 的時候，根據邊的類型，分別獲取源節點的 out fact，然後取 `meetInto` 操作。
 
@@ -111,7 +113,7 @@ for obj in pts(x):
     if obj.f changes:
     	for z in obj.alias:
     		foreach l: w = z.f:
-    			kill (w, _), gen (w, y)
+    			kill (w, _), gen (w, obj.f)
     			start cp from l
 ```
 
@@ -202,15 +204,16 @@ d = a[NAC]
 
 
 
-## Tai-e Traps You Need to Know
+## Tai-e FAQ You Need to Know
 
-有很多同學用了 Map 數據結構，但是輕率地使用了 `get` 方法，導致了 `NullPointerException`。請你試試這個樣例，看看自己有沒有中招：
+* 有很多同學用了 Map 數據結構，但是輕率地使用了 `get` 方法，導致了 `NullPointerException`。請你試試這個樣例，看看自己有沒有中招：
 
-```java
-public static void trap(){
-	A c1;
-	c1.f = 2;
-	int r3 = c1.f;
-}
-```
+    ```java
+    public static void trap(){
+        A c1;
+        c1.f = 2;
+        int r3 = c1.f;
+    }
+    ```
 
+* 你可以用 `canHoldInt `來判斷一個語句是否要進行常量變化的處理。
