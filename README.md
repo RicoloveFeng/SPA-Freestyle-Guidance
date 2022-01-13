@@ -24,4 +24,4 @@
 ## 另见
 
 * [课程主页](https://pascal-group.bitbucket.io/teaching.html)，在这里你可以下载到课程课件以及实验手册。
-* 由 RangerNJU 提供的[在线课程书目](RangerNJU/Static-Program-Analysis-Book)，如果您并不是选课学生/喜欢阅读 Gitbook 资源，更加推荐您阅览 RangerNJU 的教程。
+* 由 RangerNJU 提供的[在线课程书目](https://github.com/RangerNJU/Static-Program-Analysis-Book)，如果您并不是选课学生/喜欢阅读 Gitbook 资源，更加推荐您阅览 RangerNJU 的教程。
