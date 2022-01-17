@@ -123,7 +123,7 @@ for y = x.f in Program:
   y = temp1;
   ```
 
-  当 `o.f` 的 point-to set 发生变动，事实上就会将这个变动传播给 `temp0`，当 `temp0` 发生变化，因为它是一个 variable，才继续更新其它语句。
+  当 `pt(o.f)` 发生变动，事实上就会将这个变动传播给 `temp0`。当 `temp0` 发生变化，因为它是一个 variable，才继续更新其它语句。
 
   
 
@@ -198,3 +198,4 @@ void g(){
 <img src="img/9_10_Pointer Analysis Foundation/image-20220114130705399.png" alt="image-20220114130705399" style="zoom:80%;" />
 
 这部分的讲解在本仓库《手册的手册》部分有所介绍，欢迎阅读。
+
