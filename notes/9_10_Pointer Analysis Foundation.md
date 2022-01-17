@@ -63,7 +63,7 @@ for y = x.f in Program:
 
 ### Pointer Flow Graph
 
-于是我们提出指针流图（PFG），在处理一个语句的时候，我们也在图上加上一条边，表达指针变动的传播对象。
+于是我们提出指针流图（PFG），在处理一个语句的时候，我们也在图上加上一条边，表达指针变动的传播对象。具体的加边规则如下：
 
 <img src="img/9_10_Pointer Analysis Foundation/image-20220114113818965.png" alt="image-20220114113818965" style="zoom:80%;" />
 
@@ -167,6 +167,86 @@ void g(){
 
 
 ## Pointer Analysis with Method Calls
+
+当我们考虑过程间调用的时候，我们首先遇到的问题就是：某个调用语句指向了哪个被调用方法？
+
+回忆一下，在 CHA 的视角下，我们如果想知道 `y = x.m(...);` 调用了哪个方法，会去看 `x` 的类型。但是此时，我们只能看到 `T x = ...;`，然后根据 `T` 的继承结构来推测 `x` 的可能类型，并连接所有可能的调用边，形成 call graph。
+
+但是，有了指针分析，我们就没必要做得这么盲目了。我们现在能看到 `i: T x = New U();`，知道 `pt(x) = {U o_i}`。在 `y = x.m(...);`，我们就能直接找 `U.m()`，而不会去找所有可能的方法了。
+
+对 Call 的处理规则如下：
+
+<img src="img/9_10_Pointer Analysis Foundation/image-20220117154121791.png" alt="image-20220117154121791" style="zoom:67%;" />
+
+它的伪代码解释：
+
+```
+for l: r = x.k(a1, ..., an):
+	for obj in pt(x):
+		get target method m by Dispatch(type(obj), k)
+		
+		for i in range(len(arguments of m)):
+            add ai -> pi to PFG 
+            add m.exit -> r to PFG
+		
+		add obj to pt(m.this)
+```
+
+
+
+接下来我们逐步拆解每一步的含义。
+
+### 找目标方法
+
+`get target method m by Dispatch(type(obj), k)`
+
+找目标方法的办法还是和 CHA 的差不多的。但是，在 CHA 中，我们直接获取变量的声明类型，然后对类型和方法签名做 dispatching。而现在我们是通过 object 的具体类型来做 dispatching 了。上面的伪代码用 `type(obj)` 使得 Dispatch() 的语义与 CHA 符合，帮助大家理解。
+
+<img src="img/9_10_Pointer Analysis Foundation/image-20220117155436594.png" alt="image-20220117155436594" style="zoom: 80%;" />
+
+### 参数与返回值连边
+
+```
+for i in range(len(arguments of m)):
+    add ai -> pi to PFG 
+    add m.exit -> r to PFG
+```
+
+由于 Java 不支持参数默认值，因此调用填写的参数（arguments）和方法本身的参数（parameters）数量一定是相等的。因此，我们逐个将其连接起来，使得 point-to set 可以在过程间传递。
+
+而对于返回值，请注意 Return 语句并不出现只有一个，所以 CFG 上所有的 return value 都会汇聚到 exit block 上。相比于 `m_ret`，在伪代码中我们用 `m.exit` 代表这个虚拟的指针，而实际的实现中我们会有一组 return variable，我们需要逐个将其连接到 `r` 上。
+
+边的连接示意图如下：
+
+
+
+<img src="img/9_10_Pointer Analysis Foundation/image-20220117155741355.png" alt="image-20220117155741355" style="zoom:67%;" />
+
+### this 变量的更新
+
+`add obj to pt(m.this)`
+
+参数和返回值的连边都是很容易想到的，但是为什么我们要进行 this 的更新呢？为什么我们不采用 `add x -> m.this to PFG`，而是采用 `add obj to pt(m.this)` 呢？
+
+第一个问题，更新 this 是因为语言设计的需要，this 是类对实例的引用。例如，在上下文敏感的场景中，它能帮助区分对不同 object 的操作。
+
+第二个问题，下图就可以很好地解释：
+
+<img src="img/9_10_Pointer Analysis Foundation/image-20220117161444111.png" alt="image-20220117161444111" style="zoom:80%;" />
+
+一个变量可能并不只指向一个对象，如果我们直接连接 x 到 this 上，就会把其它不同类的 object 传过来给 this。这显然是不合理的。
+
+### 最后的完整算法
+
+<img src="img/9_10_Pointer Analysis Foundation/image-20220117163722893.png" alt="image-20220117163722893" style="zoom:80%;" />
+
+在新加入的算法中，`AddReachable` 负责维护已访问过的方法，并把被调用到的方法的语句`S_m`并入程序语句集 `S` 里。
+
+由于方法与 object 的相关性，因此 Call 的处理模式和 Store, Load 一样，在 `pt(x)` 变动时，对整个程序的相关语句进行更新。
+
+`ProcessCall` 中还针对 call graph 做了一点更细致的处理，如果同一个 call site `l`，`l -> m` 已经在 CG 里了，那么如果 `m` 没有发生变化，就不再连边。这是因为 `l -> m` 已存在，代表 `pt(x)` 只是多了一个同类的 object，此时只需要更新 `pt(this)`，并不需要重新进行参数和返回值的连边。
+
+此处不再赘述算法的细节和流程，这部分请看讲义和网课视频。
 
 
 
