@@ -83,7 +83,7 @@ x.f = 2;
 
 需要注意的是，由於 InterCP 不考慮 context，因此需要透过 `pta.vars()` 獲取所有不含 context 的 `Var`。但是，此時不需要考慮 `a.f` 和 `b.f` 存在別名關係而去遍歷  `pta.instanceFields()`，因為 `a.f.g` 和 `b.f.g` 在使用時都會先把 `a.f` 和 `b.f` 用臨時變量存起來，此時兩者的別名關係就體現在臨時變量裡面了。
 
-另外應當指出，在常量傳播中，一個 `x = y` 會 kill 掉 in fact 中原有的 `y` 常量，但是對於 `x.f = y`，內部所記錄的行為應該是 `o.f = meet(o.f, y)`。
+另外應當指出，在常量傳播中，一個 `x = y` 會 kill 掉 in fact 中原有的 `x` 常量，但是對於 `x.f = y`，內部所記錄的行為應該是 `o.f = meet(o.f, y)`。
 
 
 
